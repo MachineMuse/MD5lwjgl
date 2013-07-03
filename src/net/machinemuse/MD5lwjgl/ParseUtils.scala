@@ -1,3 +1,5 @@
+package net.machinemuse.MD5lwjgl
+
 import scala.io.Source
 
 /**

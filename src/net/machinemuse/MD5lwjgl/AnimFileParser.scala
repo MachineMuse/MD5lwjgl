@@ -1,33 +1,40 @@
+package net.machinemuse.MD5lwjgl
+
+import scala.io.Source
 import java.io.BufferedReader
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
-import scala.io.Source
-import scala.Some
 
 /**
  * Author: MachineMuse (Claire Semple)
- * Created: 3:51 PM, 7/2/13
+ * Created: 1:52 PM, 7/3/13
  */
-object MeshFileParser {
+class AnimFileParser {
+
   import ParseUtils._
 
   def parseFile(filename: String) = {
     val reader = Source.fromFile(filename).bufferedReader()
-    val builder = new MeshFileBuilder
+    val builder = new AnimFileBuilder
     while (reader.ready()) {
       val line = trimComments(reader.readLine())
       val cmd = line.substring(0, line.indexOf(" "))
       val arg = line.substring(cmd.length).trim
       cmd match {
         case "MD5Version" => builder.MD5Version = parseInt(arg)
-        case "numJoints" => builder.numJoints = parseInt(arg)
-        case "numMeshes" => builder.numMeshes = parseInt(arg)
         case "commandline" => builder.commandline = Some(arg)
+
+        case "numJoints" => builder.numJoints = parseInt(arg)
+        case "numFrames" => builder.numFrames = parseInt(arg)
+        case "frameRate" => builder.frameRate = parseInt(arg)
+        case "numAnimatedComponents" => builder.numAnimatedComponents = parseInt(arg)
+
         case "joints" => builder.joints = parseJoints(reader)
         case "mesh" => builder.meshes.append(parseMesh(builder, reader))
         case _ =>
       }
     }
+    builder.build()
   }
 
   def parseInt(str: String) = try {
@@ -78,7 +85,7 @@ object MeshFileParser {
 
   def parseJoints(reader: BufferedReader) = {
     val jointEntries: mutable.Buffer[JointEntry] = new ListBuffer[JointEntry]
-    val jointpattern = toRegex("\"word\" number \\( number number number \\) \\( number number number \\)")
+    val jointpattern = ParseUtils toRegex "\"word\" number \\( number number number \\) \\( number number number \\)"
     var line = ""
     while (reader.ready() && !line.contains("}")) {
       line = trimComments(reader.readLine())
@@ -91,16 +98,29 @@ object MeshFileParser {
     }
     jointEntries.toArray
   }
-
 }
 
-class MeshFileBuilder {
+class AnimFileBuilder {
   var MD5Version: Option[Int] = None
   var commandline: Option[String] = None
   var numJoints: Option[Int] = None
-  var numMeshes: Option[Int] = None
+  var numFrames: Option[Int] = None
+  var frameRate: Option[Int] = None
+  var numAnimatedComponents: Option[Int] = None
   val meshes: mutable.Buffer[MD5Mesh] = new ListBuffer[MD5Mesh]
   var joints: Array[JointEntry] = null
-}
 
-class JointEntry(name: String, parent: Int, pos: Vector3D, orient: Vector3D)
+  def build() = {
+    if (MD5Version == None)
+      throw new IllegalArgumentException("Error loading model: Couldn't find MD5 version.")
+    //    if(commandline == None)
+    //      throw new IllegalArgumentException("Error loading model: Couldn't find command line args.")
+    if (joints == null || numJoints.getOrElse(-1) != joints.size)
+      throw new IllegalArgumentException("Error loading model: Number of joints doesn't match declared number.")
+    if (numMeshes.getOrElse(-1) == meshes.size)
+      throw new IllegalArgumentException("Error loading model: Number of meshes doesn't match declared number.")
+
+    MD5MeshFile(MD5Version.get, commandline.getOrElse(""), joints, meshes)
+  }
+
+}

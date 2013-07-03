@@ -1,3 +1,5 @@
+package net.machinemuse.MD5lwjgl
+
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
@@ -18,15 +20,15 @@ class MeshBuilder {
   var numweights: Option[Int] = None
   val weights: mutable.Buffer[VertexWeight] = new ListBuffer[VertexWeight]
 
-  def build(joints:Array[JointEntry]):MD5Mesh = {
+  def build(joints: Array[JointEntry]): Either[String, MD5Mesh] = {
     //    if(shader == None)
     //      throw new IllegalArgumentException("Couldn't find shader for mesh.")
     if (numverts == None)
-      throw new IllegalArgumentException("Error loading model: Couldn't find number of vertices for mesh.")
+      return Left("Error loading model: Couldn't find number of vertices for mesh.")
     if (numtris == None)
-      throw new IllegalArgumentException("Error loading model: Couldn't find number of triangles for mesh.")
+      return Left("Error loading model: Couldn't find number of triangles for mesh.")
     if (numweights == None)
-      throw new IllegalArgumentException("Error loading model: Couldn't find number of weights for mesh.")
+      return Left("Error loading model: Couldn't find number of weights for mesh.")
     val vertices = new Array[Vertex](numverts.get)
     val triangles = new Array[Triangle](numtris.get)
     val vertexweights = new Array[Weight](numweights.get)
@@ -34,12 +36,12 @@ class MeshBuilder {
       v => vertices(v.index) = new Vertex(v.s, v.t, v.startWeight, v.countWeight)
     }
     tris foreach {
-      t => triangles(t.index) = new Triangle(vertices(t.vertices._1),vertices(t.vertices._2),vertices(t.vertices._3))
+      t => triangles(t.index) = new Triangle(vertices(t.vertices._1), vertices(t.vertices._2), vertices(t.vertices._3))
     }
     weights foreach {
       w => vertexweights(w.index) = new Weight(joints(w.joint), w.bias, w.pos)
     }
-    new MD5Mesh(shader.getOrElse(""), vertices, triangles, vertexweights)
+    Right(new MD5Mesh(shader.getOrElse(""), vertices, triangles, vertexweights, joints))
   }
 }
 

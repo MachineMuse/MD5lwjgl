@@ -1,3 +1,5 @@
+package net.machinemuse.MD5lwjgl
+
 /**
  * Author: MachineMuse (Claire Semple)
  * Created: 3:53 PM, 7/2/13
