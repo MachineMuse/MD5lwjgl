@@ -27,7 +27,10 @@ object MeshFileParser {
         case "numMeshes" => builder.numMeshes = parseInt(arg)
         case "commandline" => builder.commandline = Some(arg)
         case "joints" => builder.joints = parseJoints(reader)
-        case "mesh" => builder.meshes.append(parseMesh(builder, reader))
+        case "mesh" => parseMesh(builder, reader) match {
+          case Left(str) => System.err.println(str)
+          case Right(x) => builder.meshes.append(x)
+        }
         case _ =>
       }
     }
@@ -118,4 +121,5 @@ class MeshFileBuilder {
     MD5MeshFile(MD5Version.get, commandline.getOrElse(""), joints, meshes)
   }
 }
-case class MD5MeshFile(version:Int, commandline:String, joints:Seq[JointEntry], meshes:Seq[MD5Mesh])
+
+case class MD5MeshFile(version: Int, commandline: String, joints: Seq[JointEntry], meshes: Seq[MD5Mesh])

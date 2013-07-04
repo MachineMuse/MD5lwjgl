@@ -29,8 +29,8 @@ class AnimFileParser {
         case "frameRate" => builder.frameRate = parseInt(arg)
         case "numAnimatedComponents" => builder.numAnimatedComponents = parseInt(arg)
 
-        case "joints" => builder.joints = parseJoints(reader)
-        case "mesh" => builder.meshes.append(parseMesh(builder, reader))
+//        case "joints" => builder.joints = parseJoints(reader)
+//        case "mesh" => builder.meshes.append(parseMesh(builder, reader))
         case _ =>
       }
     }
@@ -117,8 +117,8 @@ class AnimFileBuilder {
     //      throw new IllegalArgumentException("Error loading model: Couldn't find command line args.")
     if (joints == null || numJoints.getOrElse(-1) != joints.size)
       throw new IllegalArgumentException("Error loading model: Number of joints doesn't match declared number.")
-    if (numMeshes.getOrElse(-1) == meshes.size)
-      throw new IllegalArgumentException("Error loading model: Number of meshes doesn't match declared number.")
+//    if (numMeshes.getOrElse(-1) == meshes.size)
+    //      throw new IllegalArgumentException("Error loading model: Number of meshes doesn't match declared number.")
 
     MD5MeshFile(MD5Version.get, commandline.getOrElse(""), joints, meshes)
   }
